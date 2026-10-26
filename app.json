@@ -1,0 +1,93 @@
+{
+  "expo": {
+    "name": "PhotoCalendar",
+    "slug": "photocalendar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.photocalendar.app"
+    },
+    "android": {
+      "package": "com.photocalendar.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "Photo2x2",
+              "label": "相片月曆 2x2",
+              "description": "顯示今天的相片",
+              "minWidth": "130dp",
+              "minHeight": "117dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "Photo4x4",
+              "label": "相片月曆 4x4",
+              "description": "顯示今天的相片與筆記",
+              "minWidth": "276dp",
+              "minHeight": "249dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 4,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "Photo4x2",
+              "label": "相片月曆 4x2",
+              "description": "顯示今天的相片與筆記",
+              "minWidth": "276dp",
+              "minHeight": "117dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": false
+          }
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "PhotoWidget",
+              "displayName": "相片月曆",
+              "description": "顯示今天的相片與筆記",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium", "systemLarge"],
+                "contentMarginsDisabled": true,
+                "initialLayout": "./src/iosWidgetLayout.ios.tsx"
+              }
+            }
+          ]
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}
