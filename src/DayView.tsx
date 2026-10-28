@@ -1,12 +1,12 @@
 import { Image, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AutosaveHeader, useAutosave, type AutosaveStore } from './autosave';
-import { addDays, formatLong, fromKey, WEEKDAYS } from './dates';
+import { addDays, fromKey, realTodayKey, WEEKDAYS } from './dates';
 import { iosWidgetShowsDate, updateIosWidget } from './iosWidget';
 import { MenuButton } from './Menu';
 import { photoFor } from './photo';
 import { questionFor } from './questions';
 import { useInsets } from './safeArea';
-import { loadAnswer, loadEffectiveToday, loadNote, saveAnswer, saveNote } from './storage';
+import { loadAnswer, loadNote, saveAnswer, saveNote } from './storage';
 import { TextButton } from './TextButton';
 import { fontSize, palette, radius, serif, shadow, space } from './theme';
 import { updateAllWidgets } from './widget';
@@ -16,12 +16,11 @@ const NOTE: AutosaveStore = {
   save: saveNote,
   failMessage: '筆記儲存失敗',
   afterSave: (dateKey) => {
-    void loadEffectiveToday().then(async (effectiveToday) => {
-      // Widgets only show today's note, so other days don't need a redraw;
-      // only the iOS widget timeline also holds the coming days.
-      if (dateKey === effectiveToday) await updateAllWidgets();
-      else if (iosWidgetShowsDate(dateKey, effectiveToday)) await updateIosWidget();
-    });
+    const today = realTodayKey();
+    // Widgets only show today's note, so other days don't need a redraw;
+    // only the iOS widget timeline also holds the coming days.
+    if (dateKey === today) void updateAllWidgets();
+    else if (iosWidgetShowsDate(dateKey, today)) void updateIosWidget();
   },
 };
 
@@ -35,22 +34,12 @@ const ANSWER: AutosaveStore = {
 interface Props {
   dateKey: string;
   today: string;
-  simulatedToday: string | null;
   onChangeDate: (dateKey: string) => void;
   onOpenMonth: () => void;
   onOpenMenu: () => void;
-  onSetSimulatedToday: (dateKey: string | null) => void;
 }
 
-export function DayView({
-  dateKey,
-  today,
-  simulatedToday,
-  onChangeDate,
-  onOpenMonth,
-  onOpenMenu,
-  onSetSimulatedToday,
-}: Props) {
+export function DayView({ dateKey, today, onChangeDate, onOpenMonth, onOpenMenu }: Props) {
   const note = useAutosave(dateKey, NOTE);
   const answer = useAutosave(dateKey, ANSWER);
   const question = questionFor(dateKey);
@@ -78,7 +67,7 @@ export function DayView({
           </Text>
           {isToday && (
             <View style={styles.todayBadge}>
-              <Text style={styles.todayText}>{simulatedToday ? '今天（模擬）' : '今天'}</Text>
+              <Text style={styles.todayText}>今天</Text>
             </View>
           )}
         </View>
@@ -158,30 +147,6 @@ export function DayView({
               placeholderTextColor={palette.muted}
               textAlignVertical="top"
             />
-          </View>
-
-          <View style={styles.testBox}>
-            <Text style={styles.testTitle}>測試功能：模擬「今天」</Text>
-            <Text style={styles.testText}>
-              {simulatedToday
-                ? `目前模擬的今天：${formatLong(simulatedToday)}`
-                : '未設定，使用手機的實際日期。'}
-            </Text>
-            <Text style={styles.testText}>App 與桌面小工具都會使用這個日期當作今天。</Text>
-            <View style={styles.testButtons}>
-              <TextButton
-                small
-                label="設為目前檢視的日期"
-                onPress={() => onSetSimulatedToday(dateKey)}
-                disabled={simulatedToday === dateKey}
-              />
-              <TextButton
-                small
-                label="清除模擬"
-                onPress={() => onSetSimulatedToday(null)}
-                disabled={simulatedToday == null}
-              />
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -321,29 +286,5 @@ const styles = StyleSheet.create({
   },
   noteInput: {
     minHeight: 120,
-  },
-  testBox: {
-    marginTop: 32,
-    padding: 14,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: palette.border,
-  },
-  testTitle: {
-    fontSize: fontSize.caption,
-    fontWeight: 'bold',
-    color: palette.muted,
-  },
-  testText: {
-    marginTop: space.xs,
-    fontSize: fontSize.small,
-    color: palette.muted,
-  },
-  testButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space.sm,
-    marginTop: 10,
   },
 });

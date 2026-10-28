@@ -10,10 +10,10 @@ import {
   type WidgetTaskHandler,
 } from 'react-native-android-widget';
 import { colors } from './colors';
-import { formatShort, fromKey, WEEKDAYS } from './dates';
+import { formatShort, fromKey, realTodayKey, WEEKDAYS } from './dates';
 import { updateIosWidget } from './iosWidget';
 import { photoFor } from './photo';
-import { loadEffectiveToday, loadNote } from './storage';
+import { loadNote } from './storage';
 
 // Must match the widget names in app.json (react-native-android-widget plugin).
 const WIDGET_NAMES = ['Photo2x2', 'Photo4x4', 'Photo4x2'];
@@ -34,7 +34,7 @@ interface Size {
 }
 
 async function loadWidgetData(): Promise<WidgetData> {
-  const dateKey = await loadEffectiveToday();
+  const dateKey = realTodayKey();
   return { dateKey, note: await loadNote(dateKey) };
 }
 
@@ -246,8 +246,8 @@ export const widgetTaskHandler: WidgetTaskHandler = async ({
   }
 };
 
-// Redraws every placed widget. Called from the app on note save,
-// simulated-date change and app foreground.
+// Redraws every placed widget. Called from the app on note save
+// and app foreground.
 export async function updateAllWidgets(): Promise<void> {
   const data = await loadWidgetData();
   await Promise.all(

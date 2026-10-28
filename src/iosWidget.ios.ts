@@ -9,7 +9,7 @@ import type { ImageRequireSource } from 'react-native';
 import { addDays, formatShort, fromKey, toKey, WEEKDAYS } from './dates';
 import PhotoWidget, { type PhotoWidgetProps } from './iosWidgetLayout.ios';
 import { photoFor } from './photo';
-import { loadNote, loadSimulatedToday } from './storage';
+import { loadNote } from './storage';
 
 // How many days the timeline covers; the app refills it every time it runs.
 const TIMELINE_DAYS = 14;
@@ -46,13 +46,11 @@ async function sharePhoto(photo: ImageRequireSource, dir: Directory): Promise<Fi
 async function refresh(): Promise<void> {
   // The clock is read once, so a refresh running over midnight stays consistent.
   const now = new Date();
-  const realToday = toKey(now);
-  const today = (await loadSimulatedToday()) ?? realToday;
+  const today = toKey(now);
   const dir = new Directory(widgetsDirectory);
   const shared = new Set<string>();
   const entries: WidgetTimelineEntry<PhotoWidgetProps>[] = [];
   for (let i = 0; i < TIMELINE_DAYS; i++) {
-    // Day i follows the app's "today", so the simulated date carries over.
     const dateKey = addDays(today, i);
     const photo = photoFor(dateKey);
     const file = photo == null ? null : await sharePhoto(photo, dir);
@@ -60,7 +58,7 @@ async function refresh(): Promise<void> {
     const date = fromKey(dateKey);
     entries.push({
       // The first entry shows right away, each later one from its local midnight on.
-      date: i === 0 ? now : fromKey(addDays(realToday, i)),
+      date: i === 0 ? now : fromKey(addDays(today, i)),
       props: {
         imageUri: file?.uri ?? '',
         shortLabel: formatShort(dateKey),

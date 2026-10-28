@@ -7,7 +7,6 @@ import { MenuPanel, type Page } from './src/Menu';
 import { MonthView, type Month } from './src/MonthView';
 import { ResourcesView } from './src/ResourcesView';
 import { SafeAreaProvider, useInsets } from './src/safeArea';
-import { loadSimulatedToday, saveSimulatedToday } from './src/storage';
 import { palette } from './src/theme';
 import { ToastHost } from './src/toast';
 import { updateAllWidgets } from './src/widget';
@@ -25,34 +24,24 @@ function Screen({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  const [ready, setReady] = useState(false);
-  const [realToday, setRealToday] = useState(realTodayKey);
-  const [simulatedToday, setSimulatedToday] = useState<string | null>(null);
+  const [today, setToday] = useState(realTodayKey);
   const [view, setView] = useState<Page>('day');
-  const [selected, setSelected] = useState(realToday);
-  const [month, setMonth] = useState<Month>(() => monthOf(realToday));
-  const [year, setYear] = useState(() => monthOf(realToday).year);
+  const [selected, setSelected] = useState(today);
+  const [month, setMonth] = useState<Month>(() => monthOf(today));
+  const [year, setYear] = useState(() => monthOf(today).year);
   const [menuOpen, setMenuOpen] = useState(false);
   // The pages the year overview and resources page were opened from, plus the
   // year overview when a month is picked there, latest last, for the back key.
   const [history, setHistory] = useState<Page[]>([]);
 
-  // The simulated date (test feature) replaces the real date everywhere.
-  const today = simulatedToday ?? realToday;
-
   useEffect(() => {
-    void loadSimulatedToday().then((sim) => {
-      setSimulatedToday(sim);
-      if (sim != null) setSelected(sim);
-      setReady(true);
-    });
     void updateAllWidgets();
   }, []);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
-        setRealToday(realTodayKey());
+        setToday(realTodayKey());
         void updateAllWidgets();
       }
     });
@@ -123,12 +112,6 @@ export default function App() {
     // openMonth only reads `selected`, goBack only `history`.
   }, [menuOpen, view, selected, history]);
 
-  const changeSimulatedToday = async (dateKey: string | null) => {
-    await saveSimulatedToday(dateKey);
-    setSimulatedToday(dateKey);
-    await updateAllWidgets();
-  };
-
   let page: ReactNode;
   switch (view) {
     case 'day':
@@ -136,11 +119,9 @@ export default function App() {
         <DayView
           dateKey={selected}
           today={today}
-          simulatedToday={simulatedToday}
           onChangeDate={setSelected}
           onOpenMonth={openMonth}
           onOpenMenu={openMenu}
-          onSetSimulatedToday={(key) => void changeSimulatedToday(key)}
         />
       );
       break;
@@ -181,8 +162,8 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <Screen>
-        {ready && page}
-        {ready && menuOpen && (
+        {page}
+        {menuOpen && (
           <MenuPanel current={view} onSelect={selectFromMenu} onClose={() => setMenuOpen(false)} />
         )}
         <StatusBar style="dark" />

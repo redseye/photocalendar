@@ -29,12 +29,6 @@ export function addDays(key: string, days: number): string {
   return toKey(date);
 }
 
-// e.g. 2026年11月5日 星期四
-export function formatLong(key: string): string {
-  const d = fromKey(key);
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 星期${WEEKDAYS[d.getDay()]}`;
-}
-
 // e.g. 14:28
 export function formatTime(date: Date): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
