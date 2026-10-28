@@ -42,7 +42,6 @@
         "exclude": [
           "expo-widgets",
           "@expo/ui",
-          "react-native-safe-area-context",
           "expo-image-manipulator",
           "expo-image-loader"
         ]
