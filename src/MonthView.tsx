@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors } from './colors';
 import { toKey, WEEKDAYS } from './dates';
+import { MENU_BUTTON_SIZE, MenuButton } from './Menu';
 import { photoFor } from './photo';
 import { useInsets } from './safeArea';
 import { datesWithNotes } from './storage';
 import { TextButton } from './TextButton';
+import { fontSize, palette, radius, serif, shadow, space } from './theme';
 
 export interface Month {
   year: number;
@@ -17,6 +18,7 @@ interface Props {
   today: string;
   onChangeMonth: (month: Month) => void;
   onSelectDate: (dateKey: string) => void;
+  onOpenMenu: () => void;
 }
 
 function shiftMonth({ year, month }: Month, delta: number): Month {
@@ -24,7 +26,7 @@ function shiftMonth({ year, month }: Month, delta: number): Month {
   return { year: d.getFullYear(), month: d.getMonth() };
 }
 
-export function MonthView({ month, today, onChangeMonth, onSelectDate }: Props) {
+export function MonthView({ month, today, onChangeMonth, onSelectDate, onOpenMenu }: Props) {
   const { year, month: m } = month;
   const daysInMonth = new Date(year, m + 1, 0).getDate();
   const leadingBlanks = new Date(year, m, 1).getDay(); // weeks start on Sunday
@@ -51,39 +53,46 @@ export function MonthView({ month, today, onChangeMonth, onSelectDate }: Props) 
     // Keeps the last row clear of the gesture bar (or home indicator).
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
+        <MenuButton onPress={onOpenMenu} />
         <TextButton label="‹" onPress={() => onChangeMonth(shiftMonth(month, -1))} />
         <Text style={styles.title}>{`${year}年${m + 1}月`}</Text>
         <TextButton label="›" onPress={() => onChangeMonth(shiftMonth(month, 1))} />
-      </View>
-
-      <View style={styles.row}>
-        {WEEKDAYS.map((w) => (
-          <Text key={w} style={styles.weekday}>
-            {w}
-          </Text>
-        ))}
+        {/* Balances the menu button, so the title stays centred. */}
+        <View style={styles.menuSpace} />
       </View>
 
       {/* Google Calendar style: the 5-6 week rows share the remaining height, thin lines between cells. */}
-      <View style={styles.grid}>
-        {weeks.map((week, w) => (
-          <View key={w} style={styles.week}>
-            {week.map((key, d) =>
-              key == null ? (
-                <View key={`blank-${d}`} style={[styles.cell, d > 0 && styles.cellDivider]} />
-              ) : (
-                <DayCell
-                  key={key}
-                  dateKey={key}
-                  isToday={key === today}
-                  hasNote={noted.has(key)}
-                  divider={d > 0}
-                  onPress={() => onSelectDate(key)}
-                />
-              )
-            )}
+      <View style={styles.card}>
+        <View style={styles.cardClip}>
+          <View style={styles.row}>
+            {WEEKDAYS.map((w) => (
+              <Text key={w} style={styles.weekday}>
+                {w}
+              </Text>
+            ))}
           </View>
-        ))}
+
+          <View style={styles.grid}>
+            {weeks.map((week, w) => (
+              <View key={w} style={styles.week}>
+                {week.map((key, d) =>
+                  key == null ? (
+                    <View key={`blank-${d}`} style={[styles.cell, d > 0 && styles.cellDivider]} />
+                  ) : (
+                    <DayCell
+                      key={key}
+                      dateKey={key}
+                      isToday={key === today}
+                      hasNote={noted.has(key)}
+                      divider={d > 0}
+                      onPress={() => onSelectDate(key)}
+                    />
+                  )
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -119,36 +128,56 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 12,
+    gap: space.sm,
+    paddingHorizontal: space.md,
+    paddingTop: space.sm,
+    paddingBottom: space.md,
+  },
+  menuSpace: {
+    width: MENU_BUTTON_SIZE,
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text,
+    flex: 1,
+    textAlign: 'center',
+    fontFamily: serif,
+    fontSize: fontSize.title,
+    color: palette.heading,
+  },
+  // The shadow sits on the outer view; the inner one clips the cells to the rounded corners.
+  card: {
+    ...shadow,
+    flex: 1,
+    marginHorizontal: space.md,
+    marginBottom: space.md,
+    borderRadius: radius.lg,
+    backgroundColor: palette.surface,
+  },
+  cardClip: {
+    flex: 1,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    // Shows through the blank cells before the 1st and after the last day.
+    backgroundColor: palette.background,
   },
   row: {
     flexDirection: 'row',
+    backgroundColor: palette.surface,
   },
   weekday: {
     flex: 1,
     textAlign: 'center',
-    paddingVertical: 6,
-    fontSize: 13,
-    color: colors.muted,
+    paddingVertical: space.sm,
+    fontSize: fontSize.caption,
+    color: palette.muted,
   },
   grid: {
     flex: 1,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
   },
   week: {
     flex: 1,
     flexDirection: 'row',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: palette.border,
   },
   cell: {
     flex: 1,
@@ -156,10 +185,10 @@ const styles = StyleSheet.create({
   },
   cellDivider: {
     borderLeftWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderColor: palette.border,
   },
   dayCell: {
-    backgroundColor: colors.surface,
+    backgroundColor: palette.surface,
   },
   cellPhoto: {
     ...StyleSheet.absoluteFill,
@@ -170,27 +199,27 @@ const styles = StyleSheet.create({
   },
   dayBadge: {
     alignSelf: 'center',
-    marginTop: 4,
+    marginTop: space.xs,
     minWidth: 24,
     height: 24,
-    paddingHorizontal: 4,
-    borderRadius: 12,
+    paddingHorizontal: space.xs,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dayBadgeOnPhoto: {
-    backgroundColor: 'rgba(255,253,248,0.85)',
+    backgroundColor: 'rgba(251,248,242,0.88)',
   },
   todayBadge: {
-    backgroundColor: colors.accent,
+    backgroundColor: palette.accent,
   },
   dayNumber: {
-    fontSize: 12,
-    color: colors.text,
+    fontSize: fontSize.small,
+    color: palette.text,
   },
   todayNumber: {
     fontWeight: 'bold',
-    color: colors.surface,
+    color: palette.surface,
   },
   noteMarker: {
     position: 'absolute',
@@ -199,8 +228,8 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.accent,
+    backgroundColor: palette.warm,
     borderWidth: 1.5,
-    borderColor: colors.surface,
+    borderColor: palette.surface,
   },
 });

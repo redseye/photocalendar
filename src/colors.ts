@@ -1,3 +1,5 @@
+// The home-screen widgets' colours (widget.tsx; iosWidgetLayout.ios.tsx keeps
+// a copy). Unchanged by the app's restyle (WBS 9.1); the app uses theme.ts.
 export const colors = {
   background: '#F7F3EC',
   surface: '#FFFDF8',

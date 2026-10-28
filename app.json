@@ -87,7 +87,13 @@
           ]
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/fonts/NotoSerifTC-Regular.ttf"]
+        }
+      ]
     ]
   }
 }

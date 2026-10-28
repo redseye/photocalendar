@@ -2,8 +2,8 @@
 // once in App) draws one near the top of the screen, clear of the keyboard.
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
-import { colors } from './colors';
 import { useInsets } from './safeArea';
+import { fontSize, palette, radius, shadow } from './theme';
 
 // As long as Android's Toast.LENGTH_SHORT / LENGTH_LONG.
 const DURATION_MS = { short: 2000, long: 3500 };
@@ -35,7 +35,9 @@ export function ToastHost() {
   if (message == null) return null;
   return (
     <View style={[styles.overlay, { top: insets.top + 8 }]}>
-      <Text style={styles.toast}>{message}</Text>
+      <View style={styles.toast}>
+        <Text style={styles.text}>{message}</Text>
+      </View>
     </View>
   );
 }
@@ -49,12 +51,14 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
   toast: {
-    paddingHorizontal: 16,
+    ...shadow,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: colors.text,
-    fontSize: 14,
-    color: colors.surface,
+    borderRadius: radius.pill,
+    backgroundColor: palette.heading,
+  },
+  text: {
+    fontSize: fontSize.label,
+    color: palette.surface,
   },
 });

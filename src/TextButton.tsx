@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
-import { colors } from './colors';
+import { fontSize, palette, radius, space } from './theme';
 
 interface Props {
   label: string;
@@ -30,31 +30,32 @@ export function TextButton({ label, onPress, disabled, small, style }: Props) {
 
 const styles = StyleSheet.create({
   button: {
+    minWidth: 40,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
+    paddingVertical: space.sm,
+    borderRadius: radius.pill,
+    backgroundColor: palette.surface,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: palette.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   small: {
-    paddingHorizontal: 10,
+    minWidth: 0,
+    paddingHorizontal: space.md,
     paddingVertical: 5,
-    borderRadius: 14,
   },
   pressed: {
-    backgroundColor: colors.border,
+    backgroundColor: palette.sunken,
   },
   disabled: {
     opacity: 0.4,
   },
   label: {
-    fontSize: 16,
-    color: colors.text,
+    fontSize: fontSize.body,
+    color: palette.heading,
   },
   smallLabel: {
-    fontSize: 13,
+    fontSize: fontSize.caption,
   },
 });
